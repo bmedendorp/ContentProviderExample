@@ -2,8 +2,10 @@ package com.tythis.contentproviderexample;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -16,6 +18,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -80,11 +83,25 @@ public class MainActivity extends AppCompatActivity {
                         contactNames.setAdapter(adapter);
                     }
                 } else {
-                    Snackbar.make(view, "Please grant access to your contacts", Snackbar.LENGTH_INDEFINITE)
-                            .setAction("Action", new View.OnClickListener() {
+                    Snackbar.make(view, "This app can't display your Contacts records unless you grant access", Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Grant Access", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View view) {
-                                            Toast.makeText(MainActivity.this, "Snackbar action clicked", Toast.LENGTH_SHORT).show();
+                                            Log.d(TAG, "Snackbar onClick: starts");
+                                            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, READ_CONTACTS)) {
+                                                Log.d(TAG, "Snackbar onClick: calling requestPermissions");
+                                                ActivityCompat.requestPermissions(MainActivity.this, new String[] {READ_CONTACTS}, REQUEST_CODE_READ_CONTACTS);
+                                            } else {
+                                                // The user has permanently denied the permission, so take them to the settings
+                                                Log.d(TAG, "Snackbar onClick: launching settings");
+                                                Intent intent = new Intent();
+                                                intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                                Uri uri = Uri.fromParts("package", MainActivity.this.getPackageName(), null);
+                                                Log.d(TAG, "Snackbar onClick: Intent Uri is: " + uri.toString());
+                                                intent.setData(uri);
+                                                MainActivity.this.startActivity(intent);
+                                            }
+                                            Log.d(TAG, "Snackbar onClick: ends");
                                         }
                                     }
                             ).show();
